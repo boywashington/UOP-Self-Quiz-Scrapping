@@ -1,6 +1,6 @@
 # This script is scraping quiz data from the UoPeople portal and exporting it to a Word document.
 # Make sure to update the URL (see line 13)and COOKIES (see line 17) variables with your actual data before running.
-# COOKIES information is copied from logged-in browser session (inspect element -> application -> cookies) and should be fresh to work properly.
+# COOKIES information is copied from logged-in browser session (inspect element -> application -> cookies) and should be fresh to work properly. Test changes here.
 
 import os
 import re
