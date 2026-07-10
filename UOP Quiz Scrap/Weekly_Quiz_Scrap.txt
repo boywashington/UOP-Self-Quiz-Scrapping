@@ -1,0 +1,4 @@
+Provide a Python code that grab each quiz attempted, convert into pdf, and download it from University of The People LMS.
+Attached is the example list of attempted quizzes for Unit 1 of subject "CS 4402-01 - AY2026-T5".
+In the example list, there are 7 attempted quizzes with the link to the individual quiz.
+I have login access to the LMS portal.

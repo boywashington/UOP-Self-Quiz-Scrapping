@@ -24,6 +24,11 @@
             "name": "Kopi Tetangga",
             "price": 2.8,
             "in_stock": false
+        },
+        {
+            "name": "latte-art",
+            "price": 5.55,
+            "in_stock": false
         }
     ]
 }
