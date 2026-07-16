@@ -1,0 +1,10 @@
+Provide a Python code that grab each quiz attempted, convert into pdf, and download it from University of The People LMS.
+Attached is the example list of attempted quizzes for Unit 1 of subject "CS 4402-01 - AY2026-T5".
+In the example list, there are 7 attempted quizzes with the link to the individual quiz.
+I have login access to the LMS portal.
+
+I want the script to remove this option input: "Quiz Week to be Scraped [1-8, comma separated, or 'all']:" and consider every script execution is scrapping all available quizzes.
+
+See the terminal output pasted text. When first encounter of "No attempts found for week X" do not try to fetch further following week's list. Complete the remaining tasks. 
+
+Saved the PDF to filename like "CS-4402_Week_[whatever week(s) contaianing attempted quiz]_Quiz_Compilation.pdf"; and in this case (see output pasted text) is "CS-4402_Week_1_2_3_Quiz_Compilation.pdf".
