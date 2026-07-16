@@ -38,8 +38,15 @@ You will be prompted for:
       course label with its org unit code ("ou") and Week 1 quiz code
       ("qi"), so you only ever type numbers/credentials at runtime, never
       the raw codes themselves)
-    - Week number(s): a single number 1-8, a comma separated list (e.g. 1,2,5),
-      or "all" for weeks 1-8.
+
+The script always scrapes every week from 1 through 8, even if a week in
+the middle comes back with no attempts (e.g. week 4 empty but week 5 still
+has data) - it only skips the empty ones rather than stopping early. The
+output PDF filename reflects only the weeks that actually had attempts,
+e.g. "CS-4402_Week_1_2_3_5_Quiz_Compilation.pdf" if week 4 had none.
+
+The PDF is always saved in the same folder as this script file, regardless
+of what directory you run the command from.
 
 Tip for finding a new course's codes: open its Week 1 "attempted quizzes"
 list page in your browser and look at the URL, e.g.
@@ -49,6 +56,7 @@ https://learn.uopeople.edu/d2l/lms/quizzing/user/quiz_submissions.d2l?qi=10185&o
 """
 
 import re
+import os
 import sys
 import time
 import getpass
@@ -432,24 +440,6 @@ def build_pdf(questions: List[Question], output_path: str, title: str):
 # Main
 # --------------------------------------------------------------------------
 
-def parse_week_selection(raw: str) -> List[int]:
-    raw = raw.strip().lower()
-    if raw in ("all", "*"):
-        return list(range(1, 9))
-    weeks = []
-    for part in raw.split(","):
-        part = part.strip()
-        if not part:
-            continue
-        w = int(part)
-        if not (1 <= w <= 8):
-            raise ValueError(f"Week number {w} is out of range (1-8).")
-        weeks.append(w)
-    if not weeks:
-        raise ValueError("No valid week number(s) entered.")
-    return weeks
-
-
 def choose_course() -> dict:
     print()
     for i, course in enumerate(COURSES, start=1):
@@ -473,14 +463,6 @@ def main():
     week1_qi = course["week1_qi"]
     short_code = course["short_code"]
 
-    week_raw = input("\nQuiz Week to be Scraped [1-8, comma separated, or 'all']: ").strip()
-
-    try:
-        weeks = parse_week_selection(week_raw)
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
     print("\nLaunching browser...")
     try:
         driver = make_driver(headless=False)
@@ -491,6 +473,7 @@ def main():
 
     all_questions: List[Question] = []
     seen_keys = set()
+    weeks_scraped: List[int] = []
 
     try:
         print("Logging in...")
@@ -499,9 +482,8 @@ def main():
             sys.exit(1)
         print("Login successful.")
 
-        for week in weeks:
+        for week in range(1, 9):
             qi = week1_qi + (week - 1)
-            #print(f"\nWeek {week} (qi={qi}): fetching attempted quizzes list...")
             print(f"\nWeek {week} {short_code}: fetching list of attempted quizzes...")
             try:
                 attempt_links = get_attempt_links(driver, course_code, qi)
@@ -513,6 +495,7 @@ def main():
                 print(f"  No attempts found for week {week}.")
                 continue
 
+            weeks_scraped.append(week)
             print(f"  Found {len(attempt_links)} attempts.")
 
             for i, link in enumerate(attempt_links, start=1):
@@ -537,16 +520,18 @@ def main():
         print("\nNo questions were collected. Nothing to save.")
         sys.exit(0)
 
-    if len(weeks) == 1:
-        week_label_title = f"Week {weeks[0]}"
-        week_label_file = f"Week_{weeks[0]}"
+    if len(weeks_scraped) == 1:
+        week_label_title = f"Week {weeks_scraped[0]}"
+        week_label_file = f"Week_{weeks_scraped[0]}"
     else:
-        week_nums = "_".join(str(w) for w in weeks)
-        week_label_title = "Week " + ", ".join(str(w) for w in weeks)
+        week_nums = "_".join(str(w) for w in weeks_scraped)
+        week_label_title = "Week " + ", ".join(str(w) for w in weeks_scraped)
         week_label_file = f"Week_{week_nums}"
 
     title = f"{course['label']}<br/>{week_label_title} Quiz Compilation"
-    output_path = f"{short_code}_{week_label_file}_Quiz_Compilation.pdf"
+    filename = f"{short_code}_{week_label_file}_Quiz_Compilation.pdf"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.join(script_dir, filename)
 
     print(f"\nCollected {len(all_questions)} unique questions. Building PDF...")
     build_pdf(all_questions, output_path, title)
